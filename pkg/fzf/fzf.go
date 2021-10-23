@@ -1,31 +1,63 @@
 package fzf
 
 import (
-	"bytes"
 	"errors"
-	"os"
-	"os/exec"
+	"fmt"
+	"sort"
 	"strings"
+
+	"github.com/filariow/azs/pkg/az"
+	"github.com/ktr0731/go-fuzzyfinder"
 )
 
-func ChooseProfile() (string, error) {
-	cmd := exec.Command("fzf", "--ansi", "--preview", "az account show -s {} -o yaml")
-	var out bytes.Buffer
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = &out
-
-	cmd.Env = append(os.Environ(),
-		`FZF_DEFAULT_COMMAND=az account list --query '[].id' -o tsv`)
-	if err := cmd.Run(); err != nil {
-		if _, ok := err.(*exec.ExitError); !ok {
-			return "", err
+func ChooseSubscription(p *az.Profile) (*az.Subscription, error) {
+	ss := p.Subscriptions
+	sort.Slice(ss, func(i, j int) bool {
+		if ss[i].IsDefault {
+			return true
 		}
-	}
-	choice := strings.TrimSpace(out.String())
-	if choice == "" {
-		return "", errors.New("you did not choose any of the options")
-	}
+		if ss[j].IsDefault {
+			return false
+		}
+		return strings.Compare(ss[i].Name, ss[j].Name) > 0
+	})
+	idx, err := fuzzyfinder.Find(
+		p.Subscriptions,
+		func(i int) string {
+			s := ss[i]
+			if s.IsDefault {
+				return fmt.Sprintf("\u2713 %s", s.Name)
+			}
+			return ss[i].Name
+		},
+		fuzzyfinder.WithPreviewWindow(func(i, w, h int) string {
+			if i == -1 {
+				return ""
+			}
+			s := ss[i]
+			d := "\u274C"
+			if s.IsDefault {
+				d = "\u2713"
+			}
 
-	return out.String(), nil
+			return fmt.Sprintf(
+				`Name            %s
+Subscription    %s
+User            %s
+Tenant          %s
+IsDefault       %s
+State           %s`,
+				s.Name, s.ID, s.User.Name, s.TenantId, d, s.State)
+		}))
+	if err != nil {
+		if errors.Is(err, fuzzyfinder.ErrAbort) {
+			return nil, ErrorAbort
+		}
+		return nil, err
+	}
+	return &ss[idx], nil
 }
+
+var (
+	ErrorAbort = errors.New("Operation aborted by user")
+)

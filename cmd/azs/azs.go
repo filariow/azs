@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/filariow/azs/pkg/az"
 	"github.com/filariow/azs/pkg/fzf"
@@ -13,21 +13,22 @@ func main() {
 	ctx := context.Background()
 	p, err := az.ReadProfiles(ctx)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
-	c := len(p.Subscriptions)
-	ii := make([]string, c, c)
-	for j, i := range p.Subscriptions {
-		ii[j] = i.ID
-	}
-
-	cp, err := fzf.ChooseProfile()
+	s, err := fzf.ChooseSubscription(p)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
-	fmt.Printf("Chosen profile: %s", cp)
-	if err := az.ChangeProfile(cp); err != nil {
-		log.Fatal(err)
+
+	if err := az.ChangeProfile(s.ID); err != nil {
+		fatal(err)
 	}
+
+	fmt.Printf("Changed subscription to '%s' (%s)\n", s.Name, s.ID)
+}
+
+func fatal(err error) {
+	fmt.Fprintln(os.Stderr, err)
+	os.Exit(1)
 }
