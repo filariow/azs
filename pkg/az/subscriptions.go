@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 
 	"github.com/dimchansky/utfbom"
@@ -55,4 +56,20 @@ func ReadProfiles(ctx context.Context) (*Profile, error) {
 	}
 
 	return &p, nil
+}
+
+func WriteProfiles(ctx context.Context) error {
+	panic("not implemented")
+}
+
+func ChangeProfile(subscriptionID string) error {
+	cmd := exec.Command("az", "account", "set", "--subscription", subscriptionID)
+
+	if err := cmd.Run(); err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			return err
+		}
+	}
+
+	return nil
 }

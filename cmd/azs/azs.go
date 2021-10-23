@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/filariow/azs/pkg/az"
+	"github.com/filariow/azs/pkg/fzf"
 )
 
 func main() {
@@ -14,7 +15,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, s := range p.Subscriptions {
-		fmt.Printf("%v\n", s)
+
+	c := len(p.Subscriptions)
+	ii := make([]string, c, c)
+	for j, i := range p.Subscriptions {
+		ii[j] = i.ID
+	}
+
+	cp, err := fzf.ChooseProfile()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Chosen profile: %s", cp)
+	if err := az.ChangeProfile(cp); err != nil {
+		log.Fatal(err)
 	}
 }
