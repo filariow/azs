@@ -10,6 +10,8 @@ import (
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
+var ErrorAbort = errors.New("Operation aborted by user")
+
 func ChooseSubscription(p *az.Profile) (*az.Subscription, error) {
 	ss := p.Subscriptions
 	sort.Slice(ss, func(i, j int) bool {
@@ -21,8 +23,13 @@ func ChooseSubscription(p *az.Profile) (*az.Subscription, error) {
 		}
 		return strings.Compare(ss[i].Name, ss[j].Name) > 0
 	})
+
+	return fzfSubscription(ss)
+}
+
+func fzfSubscription(ss []az.Subscription) (*az.Subscription, error) {
 	idx, err := fuzzyfinder.Find(
-		p.Subscriptions,
+		ss,
 		func(i int) string {
 			s := ss[i]
 			if s.IsDefault {
@@ -57,7 +64,3 @@ State           %s`,
 	}
 	return &ss[idx], nil
 }
-
-var (
-	ErrorAbort = errors.New("Operation aborted by user")
-)

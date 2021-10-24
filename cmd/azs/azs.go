@@ -10,7 +10,9 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	p, err := az.ReadProfiles(ctx)
 	if err != nil {
 		fatal(err)
@@ -21,7 +23,7 @@ func main() {
 		fatal(err)
 	}
 
-	if err := az.ChangeProfile(s.ID); err != nil {
+	if err := az.ChangeProfile(ctx, s.ID); err != nil {
 		fatal(err)
 	}
 

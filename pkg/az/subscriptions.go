@@ -62,8 +62,8 @@ func WriteProfiles(ctx context.Context) error {
 	panic("not implemented")
 }
 
-func ChangeProfile(subscriptionID string) error {
-	cmd := exec.Command("az", "account", "set", "--subscription", subscriptionID)
+func ChangeProfile(ctx context.Context, subscriptionID string) error {
+	cmd := exec.CommandContext(ctx, "az", "account", "set", "--subscription", subscriptionID)
 
 	if err := cmd.Run(); err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
