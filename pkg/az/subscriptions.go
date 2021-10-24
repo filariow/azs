@@ -58,10 +58,6 @@ func ReadProfiles(ctx context.Context) (*Profile, error) {
 	return &p, nil
 }
 
-func WriteProfiles(ctx context.Context) error {
-	panic("not implemented")
-}
-
 func ChangeProfile(ctx context.Context, subscriptionID string) error {
 	cmd := exec.CommandContext(ctx, "az", "account", "set", "--subscription", subscriptionID)
 
