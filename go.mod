@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/dimchansky/utfbom v1.1.1
-	github.com/ktr0731/go-fuzzyfinder v0.5.1
+	github.com/ktr0731/go-fuzzyfinder v0.6.0
 )
 
 require (
